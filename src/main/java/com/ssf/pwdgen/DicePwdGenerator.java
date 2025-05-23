@@ -1,10 +1,11 @@
 package com.ssf.pwdgen;
 
 public class DicePwdGenerator {
-    static final String RND_WORD_SEPARATOR = "RND";
+    int _hashPasswordLength = -1;
     int _numWords = 5;
     int _numPairs = 3;
-    String _wordSeparator = RND_WORD_SEPARATOR;
+    String _wordSeparator = "@#$%*-_+=";
+    boolean _sameSeparator = false;
     boolean _capitalize = false;
     String _dictionaryType = "Common";
     boolean _quiet = false;
@@ -53,13 +54,10 @@ public class DicePwdGenerator {
                     break;
                 case "-separator":
                     _wordSeparator = args[i+1];
-                    if(_wordSeparator.equalsIgnoreCase("SPC"))
-                        _wordSeparator = " ";
-                    if(_wordSeparator.equalsIgnoreCase("NONE"))
-                        _wordSeparator = "";
-                    else if(!_wordSeparator.equalsIgnoreCase(RND_WORD_SEPARATOR))
-                        _wordSeparator = _wordSeparator.substring(0,1);
                     i++;
+                    break;
+                case "-sameseparator":
+                    _sameSeparator = true;
                     break;
                 case "-capitalize":
                     _capitalize = true;
@@ -73,6 +71,10 @@ public class DicePwdGenerator {
                     break;
                 case "-numpasswords":
                     _numPasswords = Integer.parseInt(args[i+1]);
+                    i++;
+                    break;
+                case "-hashpassword":
+                    _hashPasswordLength = Integer.parseInt(args[i+1]);
                     i++;
                     break;
                 case "-includenumber":
@@ -99,17 +101,15 @@ Usage: java -jar DicePwdGenerator.jar [-numpasswords N] [-numwords N] [-separato
 \t-numpasswords N - number of passwords to generate. Default - 1
 \t-numwords N - number of words in password. Default - 5
 \t-numpairs N - number of noun/adjective pairs for Common dictionary. Default - 3
-\t-separator C - character to separate words in password. Default - random(RND). 
-\t    Special combination:
-\t        SPC - space symbol as separator
-\t        NONE - no separator
-\t        RND - random special character
+\t-separator C - set of characters to separate words in password. Default - random symbols from set of @ # $ % * - _ + =
+\t-sameseparator - use same separator between words. Default - false 
 \t-capitalize - Capitalize words in password. Default false
 \t-includenumber - Include single digit in password. Default false
 \t-dictionary Eff | Diceware | Common - dictionary to use to generate password. Default - Common
 \t    Eff - dictionary created by Electronic Frontier Foundation. https://www.eff.org/dice
 \t    Diceware - dictionary create by  A G Reinhold : https://theworld.com/~reinhold/diceware.html
 \t    Common - most common nouns(7776 words) and adjectives(216 words).
+\t-hashPassword <length> - produce hash of the generated passwords with maximum length <length> instead of password 
 \t-quiet - Quiet password generation, e.g. output only password
 \t-help - this help page
 """);

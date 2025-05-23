@@ -1,8 +1,11 @@
 package com.ssf.pwdgen;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class DicePassword {
@@ -28,18 +31,14 @@ public class DicePassword {
     }
 
     public String generate() {
+        char wordSeparator=Character.MIN_VALUE;
         boolean includenumber = _dicePwdGenerator._includeNumber;
-        StringBuffer sb = new StringBuffer();
-        String wordSeparator = _dicePwdGenerator._wordSeparator;
-        if(_dicePwdGenerator._wordSeparator.equalsIgnoreCase(DicePwdGenerator.RND_WORD_SEPARATOR))
-            wordSeparator = String.valueOf(StrengthCalculator.SPECIAL_CHARS.get(DicePassword.RANDOM.nextInt(StrengthCalculator.SPECIAL_CHARS.size())));
-
+        StringBuilder sb = new StringBuilder();
         for(int i = 0; i<_dicePwdGenerator._dictionary._numWords; i++) {
-
-
-
             String words[] =  _dicePwdGenerator._dictionary.nextWord(_dicePwdGenerator._dictionary, _dicesValue);
             for(String word : words) {
+                if(wordSeparator==Character.MIN_VALUE || (!_dicePwdGenerator._sameSeparator))
+                    wordSeparator = _dicePwdGenerator._wordSeparator.charAt(RANDOM.nextInt(_dicePwdGenerator._wordSeparator.length()));
                 if(_dicePwdGenerator._capitalize)
                     word = capitalize(word);
                 if(!sb.isEmpty()) {
@@ -55,11 +54,24 @@ public class DicePassword {
         }
         if(includenumber)
             sb.append(RANDOM.nextInt(0,10));
-        return sb.toString();
+        String ret = sb.toString();
+        if(_dicePwdGenerator._hashPasswordLength != -1)
+            ret = hashPassword(ret, _dicePwdGenerator._hashPasswordLength);
+        return ret;
     }
 
     private String capitalize(String word) {
         word = word.substring(0, 1).toUpperCase() + word.substring(1);
         return word;
+    }
+    private String hashPassword(String passphrase, int hashPasswordLength) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(passphrase.getBytes(StandardCharsets.UTF_8));
+            String base64Hash = Base64.getEncoder().encodeToString(hash);
+            return base64Hash.substring(0, Integer.max(hashPasswordLength, base64Hash.length()));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not supported", e);
+        }
     }
 }
