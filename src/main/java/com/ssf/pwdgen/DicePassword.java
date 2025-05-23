@@ -38,7 +38,7 @@ public class DicePassword {
             String words[] =  _dicePwdGenerator._dictionary.nextWord(_dicePwdGenerator._dictionary, _dicesValue);
             for(String word : words) {
                 if(wordSeparator==Character.MIN_VALUE || (!_dicePwdGenerator._sameSeparator))
-                    wordSeparator = _dicePwdGenerator._wordSeparator.charAt(RANDOM.nextInt(_dicePwdGenerator._wordSeparator.length()));
+                    wordSeparator = getWordSeparator();
                 if(_dicePwdGenerator._capitalize)
                     word = capitalize(word);
                 if(!sb.isEmpty()) {
@@ -64,12 +64,18 @@ public class DicePassword {
         word = word.substring(0, 1).toUpperCase() + word.substring(1);
         return word;
     }
+    private char getWordSeparator(){
+        return _dicePwdGenerator._wordSeparator.charAt(RANDOM.nextInt(_dicePwdGenerator._wordSeparator.length()));
+    }
     private String hashPassword(String passphrase, int hashPasswordLength) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(passphrase.getBytes(StandardCharsets.UTF_8));
             String base64Hash = Base64.getEncoder().encodeToString(hash);
-            return base64Hash.substring(0, Integer.max(hashPasswordLength, base64Hash.length()));
+            base64Hash = base64Hash.substring(0, Integer.min(hashPasswordLength, base64Hash.length()));
+            if(base64Hash.endsWith("="))
+                base64Hash = base64Hash.substring(0,base64Hash.length() - 1) + getWordSeparator();
+            return base64Hash;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 not supported", e);
         }
